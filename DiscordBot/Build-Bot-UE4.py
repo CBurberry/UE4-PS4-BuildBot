@@ -20,9 +20,6 @@ isBuildInProgress = False
 #Queue for logging strings (workaround for threading string passing)
 messageQueue = Queue(maxsize=1)
 
-#Number of currently active threads at startup
-startupThreadCount = threading.active_count()
-
 #The minimum and maximum hours between which builds will be auto-scheduled (10:00 - 16:00)
 minTime = datetime.time(hour=10)
 maxTime = datetime.time(hour=16)
@@ -109,8 +106,7 @@ async def Command_Build(message):
             msg = messageQueue.get_nowait()
             msg = "{0.author.mention} ".format(message) + msg
         else:
-            msg = 'Error: A build is already in progress, build request ignored. ActiveThreads: ' + str(threading.active_count()) 
-            msg = msg + ' Default: ' + str(startupThreadCount)
+            msg = 'Error: A build is already in progress, build request ignored.'
     else:
         msg = "Error: Command could not be executed."
     return msg
