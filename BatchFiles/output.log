@@ -1,1 +1,4 @@
-Changelog 696969 FakeChangelog
+Change 10939 on 2018/04/19 17:52:03 by kalliopi.tsavari@kalliopi.tsavari_workspace
+
+	Added some changes to the TakeDamage function so the player can take not only health damage, but also stamina and mana damage.
+

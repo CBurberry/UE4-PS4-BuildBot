@@ -38,7 +38,7 @@ Run the python script in 'DiscordBot/' using your installation of python.
 
 Command List:
 * '!help'			- Show command list.
-* '!buildrequest!	- Manual build command (ignored if one is in progress)
+* '!buildrequest'	- Manual build command (ignored if one is in progress)
 
 ## Acknowledgments
 
