@@ -6,21 +6,21 @@ and ping all developers in the chat when a build fails.
 
 The bot in future revisions will also be able to:
 * Output the error messages from the RunUAT.bat output.
-* Iterate through revisions backwards to find the commit that first breaks the build.
+* Iterate through revisions backwards to find the commit that first breaks the build. 
 * Provide scheduling commands / options for developers to be able to remotely change the frequency of builds.
-* Provide manual build command.
+* Provide manual build command (with option to set changelist number).
 
 ### Prerequisites
 
 The following is required on the machine on which the bot is to be run on:
 
 ```
-Discord Client
 Unreal Engine 4
 Windows Operating System (to run .bat files)
 Python 3.5 or greater.
 Perforce
 ```
+Note: This stage assumes the bot was already added to the discord server on which this bot is intended to be run.
 
 ### Installing & Setup
 

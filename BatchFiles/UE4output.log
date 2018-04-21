@@ -1,0 +1,80 @@
+Running AutomationTool...
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\bin\Microsoft.Common.CurrentVersion.targets(1768,5): warning : The referenced project '..\IOS\MobileDeviceInterface\MobileDeviceInterface.csproj' does not exist. [V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Source\Programs\AutomationTool\AutomationTool.csproj]
+Parsing command line: BuildCookRun -project=V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject -noP4 -platform=PS4 -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -package -archive -archivedirectory=V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\PlatformBuilds -compile
+Compiling scripts.
+    DotNETUtilities -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\DotNETUtilities.dll
+    UnrealBuildTool -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\UnrealBuildTool.exe
+    AutomationUtils.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationUtils.Automation.dll
+    AllDesktop.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\AllDesktop\AllDesktop.Automation.dll
+    Localization.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\Localization.Automation.dll
+    OneSkyLocalization.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\OneSkyLocalization.Automation.dll
+    AutomationScripts.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\AutomationScripts.Automation.dll
+    Android.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\Android\Android.Automation.dll
+    BuildGraph.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\BuildGraph.Automation.dll
+    HTML5.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\HTML5\HTML5.Automation.dll
+  C:\Program Files (x86)\MSBuild\14.0\bin\Microsoft.Common.CurrentVersion.targets(1611,5): warning : The referenced project '..\..\IOS\MobileDeviceInterface\MobileDeviceInterface.csproj' does not exist. [V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Source\Programs\AutomationTool\IOS\IOS.Automation.csproj]
+    IOS.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\IOS\IOS.Automation.dll
+    Linux.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\Linux\Linux.Automation.dll
+    Mac.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\Mac\Mac.Automation.dll
+    PS4.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\PS4\PS4.Automation.dll
+    TVOS.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\TVOS\TVOS.Automation.dll
+    Win.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\Win.Automation.dll
+    XLocLocalization.Automation -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\AutomationScripts\XLocLocalization.Automation.dll
+Took 1.9221072s to run MSBuild.exe, ExitCode=0
+Setting up ProjectParams for V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject
+********** BUILD COMMAND STARTED **********
+Running: C:\Program Files (x86)\MSBuild\14.0\bin\MSBuild.exe V:/UE4Binary_4.18.3_PS4/Engine/Windows/Engine/Source/Programs/UnrealBuildTool/UnrealBuildTool.csproj /verbosity:minimal /nologo /target:Rebuild /property:Configuration=Development /property:Platform=AnyCPU
+    DotNETUtilities -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\DotNETUtilities.dll
+    UnrealBuildTool -> V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\UnrealBuildTool.exe
+Took 1.1359162s to run MSBuild.exe, ExitCode=0
+Running: V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\UnrealBuildTool.exe WhiteBoxProject PS4 Development -Project=V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject -NoUBTMakefiles  -remoteini="V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject" -skipdeploy -noxge -generatemanifest -NoHotReload
+  Compiling against SDK: 4.508.111
+Took 1.5342255s to run UnrealBuildTool.exe, ExitCode=0
+Running: V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\UnrealBuildTool.exe WhiteBoxProject PS4 Development -Project=V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject -NoUBTMakefiles  -remoteini="V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject" -skipdeploy -noxge -NoHotReload -ignorejunk
+  Compiling against SDK: 4.508.111
+  [Adaptive unity build] Disabling PCH for excluded files. Set bAdaptiveUnityDisablesPCH to false in BuildConfiguration.xml to change this behavior.
+  [Adaptive unity build] Excluded from WhiteBoxProject unity file: CameraTriggerBox.cpp
+  Performing 3 actions (4 in parallel)
+  [1/3] orbis-clang.exe CameraTriggerBox.cpp
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(53,14):  error: '&&' within '||' [-Werror,-Wlogical-op-parentheses]
+                  if (i == 0 && i > -1 || i++ < 0) {}
+                      ~~~~~~~^~~~~~~~~ ~~
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(53,14):  note: place parentheses around the '&&' expression to silence this warning
+                  if (i == 0 && i > -1 || i++ < 0) {}
+                             ^
+                      (               )
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(54,14):  error: '&&' within '||' [-Werror,-Wlogical-op-parentheses]
+                  if (j == 0 && j > -1 || j++ < 0) {}
+                      ~~~~~~~^~~~~~~~~ ~~
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(54,14):  note: place parentheses around the '&&' expression to silence this warning
+                  if (j == 0 && j > -1 || j++ < 0) {}
+                             ^
+                      (               )
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(55,14):  error: '&&' within '||' [-Werror,-Wlogical-op-parentheses]
+                  if (k == 0 && k > -1 || k++ < 0) {}
+                      ~~~~~~~^~~~~~~~~ ~~
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(55,14):  note: place parentheses around the '&&' expression to silence this warning
+                  if (k == 0 && k > -1 || k++ < 0) {}
+                             ^
+                      (               )
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(54,7):  error: variable 'j' is uninitialized when used here [-Werror,-Wuninitialized]
+                  if (j == 0 && j > -1 || j++ < 0) {}
+                      ^
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(52,11):  note: initialize the variable 'j' to silence this warning
+                  int i, j, k = 0;
+                          ^
+                           = 0
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(53,7):  error: variable 'i' is uninitialized when used here [-Werror,-Wuninitialized]
+                  if (i == 0 && i > -1 || i++ < 0) {}
+                      ^
+  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\Source\WhiteBoxProject\Camera\CameraTriggerBox.cpp(52,8):  note: initialize the variable 'i' to silence this warning
+                  int i, j, k = 0;
+                       ^
+                        = 0
+  5 errors generated.
+  Total build time: 9.05 seconds (Local executor: 6.67 seconds)
+Took 9.2075483s to run UnrealBuildTool.exe, ExitCode=5
+ERROR: Command failed (Result:5): V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Binaries\DotNET\UnrealBuildTool.exe WhiteBoxProject PS4 Development -Project=V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject  V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject\WhiteBoxProject.uproject -NoUBTMakefiles  -remoteini="V:\Perforce-V\GamerCamps\Pro2017\Mod4\Work\WhiteBoxProject" -skipdeploy -noxge -NoHotReload -ignorejunk. See logfile for details: 'UnrealBuildTool-2018.04.21-16.18.43.txt' 
+       (see V:\UE4Binary_4.18.3_PS4\Engine\Windows\Engine\Programs\AutomationTool\Saved\Logs\UAT_Log.txt for full exception trace)
+AutomationTool exiting with ExitCode=5 (5)
+BUILD FAILED

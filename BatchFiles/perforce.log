@@ -1,0 +1,12 @@
+Change 10939 on 2018/04/19 17:52:03 by kalliopi.tsavari@kalliopi.tsavari_workspace
+
+	Added some changes to the TakeDamage function so the player can take not only health damage, but also stamina and mana damage.
+
+Change 10938 on 2018/04/19 17:51:08 by kalliopi.tsavari@kalliopi.tsavari_workspace
+
+	Created a set of environmental hazards which will apply constant damage to the player, depending on each type, when she is inside their damage radius . The DrainHazards class is the parent class of the DrainHealthHazard, DrainManaHazard and DrainStaminaHazard classes. Also created their materials and blueprints to use through the Unreal Editor.
+
+Change 10937 on 2018/04/19 17:49:03 by kalliopi.tsavari@kalliopi.tsavari_workspace
+
+	Created a set of environmental hazards which will apply instant damage to the player depending on each type. The Hazards class is the parent class of the healthHazard, ManaHazard and StaminaHazard classes. Also created their materials and blueprint to use through the Unreal Editor.
+

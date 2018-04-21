@@ -4,12 +4,15 @@ import subprocess
 import threading
 import datetime
 import os
+import re
 from queue import *
 
 client = discord.Client()
 dir = os.path.dirname(__file__)
-buildScript = os.path.join(dir, '..','BatchFiles','CMDProcessBuild.bat')
-logFile = os.path.join(dir, '..','BatchFiles','output.log')
+buildScript = os.path.join(dir, '..', 'BatchFiles', 'CMDProcessBuild.bat')
+perforceLogFile = os.path.join(dir, '..', 'BatchFiles', 'perforce.log')
+UATLogFile = os.path.join(dir, '..', 'BatchFiles', 'UE4output.log')
+errorLogString = ""
 
 #Text channel in which the bot posts to
 channelID = '430738765372325900'
@@ -36,6 +39,7 @@ class ParallelThread(threading.Thread):
        
     #Function that runs the script locally and outputs the result to the messageQueue
     def RunBuildScript(self):
+		global isBuildInProgress
         isBuildInProgress = True
         p = subprocess.Popen(buildScript, shell=False, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         self.stdout, self.stderr = p.communicate() 
@@ -45,7 +49,7 @@ class ParallelThread(threading.Thread):
             data = "**PS4 Build Failed!** \n\n"
             data += "====================================================================================================\n\n"
             data += "**Most recent commit in the project directory**:\n\n"
-            with open(logFile, 'r') as myfile:
+            with open(perforceLogFile, 'r') as myfile:
                 data += '\t' + myfile.read()
             data += "\n===================================================================================================="
             outString = data
@@ -66,6 +70,37 @@ def IsCurrentTimeInRange():
         returnValue = True
     return returnValue
 
+#Function that parses the log file from UAT output line by line to match errors
+# if any errors are found, they are returned as a string for print output.
+def FindErrorsInBuildOutput():
+    global errorLogString
+    errorLogString = "\n\n**Error Output:**\n\n```"
+    firstErrorEncountered = None
+    endOfErrorEncountered = None
+    with open(UATLogFile) as file:
+        for line in file:    
+            if ( endOfErrorEncountered == None ):
+                # Check for the starting error
+                if ( firstErrorEncountered == None ):
+                    firstErrorEncountered = re.search('error:', line)
+                
+                # We check if the ending line to error output was found
+                endOfErrorEncountered = (re.search(' error generated.', line) or re.search(' errors generated.', line))
+                
+                # If the starting error was found add the line to the string.
+                if not ( firstErrorEncountered == None ):
+                    errorLogString = errorLogString + line
+    errorLogString = errorLogString + "\n```"
+    return errorLogString
+
+async def SendMessageInChunks(inputString):
+	#Edit message that was already sent
+	#msg = await client.send_message("blah")
+	#loop while characters remain etc.
+	#edit_message(msg, "test")
+	
+	return
+	
 #Function that builds the application in the given scheduled hours
 # Starts up a separate thread to run the script
 async def Scheduled_Build():
@@ -84,7 +119,7 @@ async def Scheduled_Build():
                 print('thread exited finished!')
                 msg = messageQueue.get_nowait()
                 if len(msg) > 100:
-                    msg = "@everyone " + msg
+                    msg = "@everyone " + msg + FindErrorsInBuildOutput()
                 await client.send_message(channel, msg)
             else:
                 await client.send_message(channel, 'Error: A build is already in progress, build request ignored.')
@@ -104,7 +139,7 @@ async def Command_Build(message):
                 print('sleeping for 10s')
                 await asyncio.sleep(10)
             msg = messageQueue.get_nowait()
-            msg = "{0.author.mention} ".format(message) + msg
+            msg = "{0.author.mention} ".format(message) + msg + FindErrorsInBuildOutput()
         else:
             msg = 'Error: A build is already in progress, build request ignored.'
     else:
