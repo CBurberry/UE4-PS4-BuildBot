@@ -4,11 +4,11 @@ This bot was created with the intent of being run on a separate machine that wil
 get the latest from the perforce directory where the project is based, attempt to package the project for PS4 (using RunUAT.bat),
 and ping all developers in the chat when a build fails.
 
-The bot in future revisions will also be able to:
-* Output the error messages from the RunUAT.bat output.
-* Iterate through revisions backwards to find the commit that first breaks the build. 
-* Provide scheduling commands / options for developers to be able to remotely change the frequency of builds.
-* Provide manual build command (with option to set changelist number).
+Bot features:
+* Provides hourly build between working hours (see minTime & maxTime).
+* Manual build command for developers to start a build when needed.
+* Output the error messages from the RunUAT.bat output into discord channel and most recent 3 commits in project directory.
+* Return the state of build attempt and ping the appropriate users (the requester or @everyone if scheduled fails)
 
 ### Prerequisites
 

@@ -39,7 +39,7 @@ class ParallelThread(threading.Thread):
        
     #Function that runs the script locally and outputs the result to the messageQueue
     def RunBuildScript(self):
-		global isBuildInProgress
+        global isBuildInProgress
         isBuildInProgress = True
         p = subprocess.Popen(buildScript, shell=False, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         self.stdout, self.stderr = p.communicate() 
@@ -48,10 +48,10 @@ class ParallelThread(threading.Thread):
         if p.returncode != 0:
             data = "**PS4 Build Failed!** \n\n"
             data += "====================================================================================================\n\n"
-            data += "**Most recent commit in the project directory**:\n\n"
+            data += "**Recent commits in the project directory**:\n\n"
             with open(perforceLogFile, 'r') as myfile:
-                data += '\t' + myfile.read()
-            data += "\n===================================================================================================="
+                data += myfile.read()
+            data += "===================================================================================================="
             outString = data
         else:
             outString = "Build Successful"
@@ -74,7 +74,7 @@ def IsCurrentTimeInRange():
 # if any errors are found, they are returned as a string for print output.
 def FindErrorsInBuildOutput():
     global errorLogString
-    errorLogString = "\n\n**Error Output:**\n\n```"
+    errorLogString = "\n\n**Error Output:**\n\n"
     firstErrorEncountered = None
     endOfErrorEncountered = None
     with open(UATLogFile) as file:
@@ -90,17 +90,26 @@ def FindErrorsInBuildOutput():
                 # If the starting error was found add the line to the string.
                 if not ( firstErrorEncountered == None ):
                     errorLogString = errorLogString + line
-    errorLogString = errorLogString + "\n```"
-    return errorLogString
+    errorLogString = errorLogString + "\n"
+    
+    if len(errorLogString) < 50:
+        errorLogString = ""
+    
+    #Formatting fix (replace tilde character with hyphon - discord does line crossout if 2 on either side of a line)
+    formattedString = re.sub(r'~', '-', errorLogString)
+    return formattedString
 
-async def SendMessageInChunks(inputString):
-	#Edit message that was already sent
-	#msg = await client.send_message("blah")
-	#loop while characters remain etc.
-	#edit_message(msg, "test")
-	
-	return
-	
+#Function takes a string and sends it out in chunks that fall below the 2k character limit
+# Can be improved further with formatting work (aka don't cut a message halfway in chunk separation)
+async def SendMessageInChunks(channel, inputString):
+    #Convert string to list
+    chunks, chunk_size = len(inputString), 1900
+    list = [ inputString[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+    
+    #loop while characters remain etc.
+    for stringPartition in list:
+        await client.send_message(channel, stringPartition)
+    
 #Function that builds the application in the given scheduled hours
 # Starts up a separate thread to run the script
 async def Scheduled_Build():
@@ -119,8 +128,10 @@ async def Scheduled_Build():
                 print('thread exited finished!')
                 msg = messageQueue.get_nowait()
                 if len(msg) > 100:
-                    msg = "@everyone " + msg + FindErrorsInBuildOutput()
+                    msg = "@everyone " + msg
                 await client.send_message(channel, msg)
+                errorMsg = FindErrorsInBuildOutput()
+                await SendMessageInChunks(message.channel, errorMsg)
             else:
                 await client.send_message(channel, 'Error: A build is already in progress, build request ignored.')
         #Sleep for scheduled interval time and repeat loop after period elapses.
@@ -139,7 +150,7 @@ async def Command_Build(message):
                 print('sleeping for 10s')
                 await asyncio.sleep(10)
             msg = messageQueue.get_nowait()
-            msg = "{0.author.mention} ".format(message) + msg + FindErrorsInBuildOutput()
+            msg = "{0.author.mention} ".format(message) + msg
         else:
             msg = 'Error: A build is already in progress, build request ignored.'
     else:
@@ -160,6 +171,8 @@ async def on_message(message):
         await client.wait_until_ready()
         msg = await Command_Build( message )
         await client.send_message(message.channel, msg)
+        errorMsg = FindErrorsInBuildOutput()
+        await SendMessageInChunks(message.channel, errorMsg)
     
     # knock knock who's there    
     elif message.content.startswith('!bot'):

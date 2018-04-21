@@ -9,7 +9,7 @@ errorLogString = ""
 # if any errors are found, they are returned as a string for print output.
 def FindErrorsInBuildOutput():
     global errorLogString
-    errorLogString = "\n\n**Error Output:**\n\n"
+    errorLogString = "\n\n**Error Output:**\n\n```"
     firstErrorEncountered = None
     endOfErrorEncountered = None
     with open(UATLogFile) as file:
@@ -17,19 +17,25 @@ def FindErrorsInBuildOutput():
             if ( endOfErrorEncountered == None ):
                 # Check for the starting error
                 if ( firstErrorEncountered == None ):
-                    print('Check for FE!')
                     firstErrorEncountered = re.search('error:', line)
-                    if not ( firstErrorEncountered == None ):
-                       print('FE Encountered!')
                 
                 # We check if the ending line to error output was found
                 endOfErrorEncountered = (re.search(' error generated.', line) or re.search(' errors generated.', line))
-                if not ( endOfErrorEncountered == None ):
-                    print('EOE Encountered!')
                 
                 # If the starting error was found add the line to the string.
                 if not ( firstErrorEncountered == None ):
                     errorLogString = errorLogString + line
+    errorLogString = errorLogString + "\n```"
     return errorLogString
+    
+errorStr =  FindErrorsInBuildOutput()
 
-print(FindErrorsInBuildOutput())
+#create chunks
+chunks, chunk_size = len(errorStr), 1900
+list = [ errorStr[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+
+for x in list:
+    print(x)
+
+
+#print(FindErrorsInBuildOutput())
