@@ -10,15 +10,20 @@ from queue import *
 client = discord.Client()
 dir = os.path.dirname(__file__)
 buildScript = os.path.join(dir, '..', 'BatchFiles', 'CMDProcessBuild.bat')
+getLatestScript = os.path.join(dir, '..', 'BatchFiles', 'CMDGetForcedLatest.bat')
 perforceLogFile = os.path.join(dir, '..', 'BatchFiles', 'perforce.log')
 UATLogFile = os.path.join(dir, '..', 'BatchFiles', 'UE4output.log')
+wLogFilename = os.path.join(dir, '..', 'BatchFiles', 'WarningLog.log')
+eLogFilename = os.path.join(dir, '..', 'BatchFiles', 'ErrorLog.log')
+warningLogString = ""
 errorLogString = ""
+batchScriptRunValue = 0
 
 #Text channel in which the bot posts to
 channelID = '430738765372325900'
 
 #Global variable boolean for tracking if a build is in progress.
-isBuildInProgress = False
+isOperationInProgress = False
 
 #Queue for logging strings (workaround for threading string passing)
 messageQueue = Queue(maxsize=1)
@@ -36,11 +41,20 @@ class ParallelThread(threading.Thread):
         self.stdout = None
         self.stderr = None
         threading.Thread.__init__(self)
-       
+    
+    def RunGetLatestScript(self):
+        global isOperationInProgress
+        isOperationInProgress = True
+        p = subprocess.Popen(getLatestScript, shell=False, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        self.stdout, self.stderr = p.communicate() 
+        print('subprocess started')
+        isOperationInProgress = False
+        messageQueue.put("Revision forced to #head")
+    
     #Function that runs the script locally and outputs the result to the messageQueue
     def RunBuildScript(self):
-        global isBuildInProgress
-        isBuildInProgress = True
+        global isOperationInProgress
+        isOperationInProgress = True
         p = subprocess.Popen(buildScript, shell=False, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         self.stdout, self.stderr = p.communicate() 
         outString = ""
@@ -53,15 +67,26 @@ class ParallelThread(threading.Thread):
                 data += myfile.read()
             data += "===================================================================================================="
             outString = data
+            WriteWarningsErrorsToFiles()
+            if not ( len(errorLogString) == 0 ):
+                outString += "\nView logfiles for detailed error and warning outputs (command: !getlogs)\n"
         else:
             outString = "Build Successful"
-        isBuildInProgress = False
+        isOperationInProgress = False
         messageQueue.put(outString)
     
     def run(self):
-        self.RunBuildScript()
-        print('RunBuildScript Finished!')
+        global batchScriptRunValue
+        if ( batchScriptRunValue == 1 ):
+            self.RunGetLatestScript()
+        if ( batchScriptRunValue == 2 ):
+            self.RunBuildScript()
+        
+        print('Script Finished!')
+        batchScriptRunValue = 0
+        
 
+        
 #Function that checks if the current time is in the schedule range.
 def IsCurrentTimeInRange():
     currentTime = datetime.datetime.now().time()
@@ -70,6 +95,23 @@ def IsCurrentTimeInRange():
         returnValue = True
     return returnValue
 
+    
+#Function that parses the log file from UAT output line by line to match warnings
+def FindWarningsInBuildOutput():
+    global warningLogString
+    warningLogString = "\n\n**Warning Output:**\n" + "\nNote: Only the first 50 errors will be shown!\n\n"
+    with open(UATLogFile) as file:
+        for line in file:  
+        
+            #All warning types
+            warningSearchValue = re.search(' Warning: ', line)
+            if ( warningSearchValue != None ):
+                warningLogString = warningLogString + line   
+                
+    warningLogString = warningLogString + "\n"
+    return warningLogString
+
+    
 #Function that parses the log file from UAT output line by line to match errors
 # if any errors are found, they are returned as a string for print output.
 def FindErrorsInBuildOutput():
@@ -78,7 +120,9 @@ def FindErrorsInBuildOutput():
     firstErrorEncountered = None
     endOfErrorEncountered = None
     with open(UATLogFile) as file:
-        for line in file:    
+        for line in file:   
+            
+            #Compiler errors
             if ( endOfErrorEncountered == None ):
                 # Check for the starting error
                 if ( firstErrorEncountered == None ):
@@ -89,9 +133,23 @@ def FindErrorsInBuildOutput():
                 
                 # If the starting error was found add the line to the string.
                 if not ( firstErrorEncountered == None ):
-                    errorLogString = errorLogString + line
-    errorLogString = errorLogString + "\n"
-    
+                    errorLogString = errorLogString + line     
+                    
+    errorLogString = errorLogString + "\n\n"
+    with open(UATLogFile) as file:
+        for line in file:
+
+            #All other error types
+            errorSearchValue = re.search(' Error: ', line)
+            if ( errorSearchValue != None ):
+                errorLogString = errorLogString + line
+            
+            #Add the closing failure statement if it exists
+            failSearchValue = re.search(' Failure - ', line)
+            if ( failSearchValue != None ) :
+                errorLogString = errorLogString + '\n\n' + line
+  
+    #Truncate the error string if there's nothing in it.
     if len(errorLogString) < 50:
         errorLogString = ""
     
@@ -99,6 +157,18 @@ def FindErrorsInBuildOutput():
     formattedString = re.sub(r'~', '-', errorLogString)
     return formattedString
 
+    
+#Function that outputs the warning and error strings to log files.
+def WriteWarningsErrorsToFiles():
+    warningStr = FindWarningsInBuildOutput()
+    errorStr = FindErrorsInBuildOutput()
+
+    with open(wLogFilename, "w") as text_file:
+        text_file.write(warningStr)
+    with open(eLogFilename, "w") as text_file:
+        text_file.write(errorStr)
+    
+    
 #Function takes a string and sends it out in chunks that fall below the 2k character limit
 # Can be improved further with formatting work (aka don't cut a message halfway in chunk separation)
 async def SendMessageInChunks(channel, inputString):
@@ -109,7 +179,8 @@ async def SendMessageInChunks(channel, inputString):
     #loop while characters remain etc.
     for stringPartition in list:
         await client.send_message(channel, stringPartition)
-    
+
+        
 #Function that builds the application in the given scheduled hours
 # Starts up a separate thread to run the script
 async def Scheduled_Build():
@@ -119,7 +190,7 @@ async def Scheduled_Build():
     while not client.is_closed:
         #We don't want to run a scheduled build outside of min/max hours.
         if IsCurrentTimeInRange():
-            if not isBuildInProgress:
+            if not isOperationInProgress:
                 buildScriptThread = ParallelThread()
                 buildScriptThread.start()
                 while( buildScriptThread.is_alive() ):
@@ -130,20 +201,24 @@ async def Scheduled_Build():
                 if len(msg) > 100:
                     msg = "@everyone " + msg
                 await client.send_message(channel, msg)
-                errorMsg = FindErrorsInBuildOutput()
-                await SendMessageInChunks(message.channel, errorMsg)
             else:
-                await client.send_message(channel, 'Error: A build is already in progress, build request ignored.')
+                if ( batchScriptRunValue == 1 ):
+                    msg = "Error: Currently getting latest from perforce, please try again later."
+                if ( batchScriptRunValue == 2 ):
+                    msg = 'Error: A build is in progress, please retry later.'
         #Sleep for scheduled interval time and repeat loop after period elapses.
         await asyncio.sleep(buildInterval)
 
+        
 #Function for manually building rather than scheduling
 # does a check if a build is currently running before attempting
 # functionally equivalent to Scheduled_Build() pings the caller instead of everyone.
-async def Command_Build(message):
+async def Command_Script(message, scriptValue):
+    global batchScriptRunValue
     channel = discord.Object(id=channelID)
     if not client.is_closed:
-        if not isBuildInProgress:
+        if not isOperationInProgress:
+            batchScriptRunValue = scriptValue
             buildScriptThread = ParallelThread()
             buildScriptThread.start()
             while( buildScriptThread.is_alive() ):
@@ -152,7 +227,10 @@ async def Command_Build(message):
             msg = messageQueue.get_nowait()
             msg = "{0.author.mention} ".format(message) + msg
         else:
-            msg = 'Error: A build is already in progress, build request ignored.'
+            if ( batchScriptRunValue == 1 ):
+                msg = "Error: Currently getting latest from perforce, please try again later."
+            if ( batchScriptRunValue == 2 ):
+                msg = 'Error: A build is in progress, please retry later.'
     else:
         msg = "Error: Command could not be executed."
     return msg
@@ -169,10 +247,28 @@ async def on_message(message):
         msg = 'Understood {0.author.mention}, executing build....'.format(message)
         await client.send_message(message.channel, msg)
         await client.wait_until_ready()
-        msg = await Command_Build( message )
+        msg = await Command_Script( message, 2 )
         await client.send_message(message.channel, msg)
-        errorMsg = FindErrorsInBuildOutput()
-        await SendMessageInChunks(message.channel, errorMsg)
+    
+    # run the get latest script
+    elif message.content.startswith('!getlatest'):
+        msg = 'Understood {0.author.mention}, getting latest from perforce....'.format(message)
+        await client.send_message(message.channel, msg)
+        await client.wait_until_ready()
+        msg = await Command_Script( message, 1 )
+        await client.send_message(message.channel, msg)
+    
+    # Upload the log files from the build machine
+    elif message.content.startswith('!getlogs'):
+        msg = 'Understood {0.author.mention}, retrieving log files....'.format(message)
+        await client.send_message(message.channel, msg)
+        await client.wait_until_ready()
+        if ( batchScriptRunValue != 2 ):
+            await client.send_file(message.channel, wLogFilename)
+            await client.send_file(message.channel, eLogFilename)
+            await client.send_file(message.channel, UATLogFile)
+        else:
+            await client.send_message(message.channel, "Error: Build in progress. ")
     
     # knock knock who's there    
     elif message.content.startswith('!bot'):
@@ -181,7 +277,9 @@ async def on_message(message):
     # list command options
     elif message.content.startswith('!help'):
         helpmsg = """COMMAND LIST:
-                    \n\t!buildrequest - request a PS4 build"""
+                    \n\t!getlatest      - force get latest from perforce for WhiteBoxProject
+                    \n\t!getlogs        - get the log files from the build machine
+                    \n\t!buildrequest   - request a PS4 build (packaging)"""
         await client.send_message(message.channel, helpmsg)
 
 

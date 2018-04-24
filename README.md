@@ -9,6 +9,7 @@ Bot features:
 * Manual build command for developers to start a build when needed.
 * Output the error messages from the RunUAT.bat output into discord channel and most recent 3 commits in project directory.
 * Return the state of build attempt and ping the appropriate users (the requester or @everyone if scheduled fails)
+* Commands provided for forcing get latest at revision head & sending log files on request.
 
 ### Prerequisites
 
@@ -39,6 +40,8 @@ Run the python script in 'DiscordBot/' using your installation of python.
 Command List:
 * '!help'			- Show command list.
 * '!buildrequest'	- Manual build command (ignored if one is in progress)
+* '!getlatest'      - force get latest from perforce for WhiteBoxProject
+* '!getlogs'        - get the log files from the build machine
 
 ## Acknowledgments
 

@@ -1,0 +1,1 @@
+call p4 sync -f --parallel=0 //depot/GamerCamps/Pro2017/Mod4/Work/WhiteBoxProject/...#head
