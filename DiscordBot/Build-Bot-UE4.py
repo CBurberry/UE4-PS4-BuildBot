@@ -11,7 +11,9 @@ client = discord.Client()
 dir = os.path.dirname(__file__)
 buildScript = os.path.join(dir, '..', 'BatchFiles', 'CMDProcessBuild.bat')
 getLatestScript = os.path.join(dir, '..', 'BatchFiles', 'CMDGetForcedLatest.bat')
+installPackageScript = os.path.join(dir, '..', 'BatchFiles', 'CMDInstallPackage.bat')
 perforceLogFile = os.path.join(dir, '..', 'BatchFiles', 'perforce.log')
+packageLogFile = os.path.join(dir, '..', 'BatchFiles', 'Package.log')
 UATLogFile = os.path.join(dir, '..', 'BatchFiles', 'UE4output.log')
 wLogFilename = os.path.join(dir, '..', 'BatchFiles', 'WarningLog.log')
 eLogFilename = os.path.join(dir, '..', 'BatchFiles', 'ErrorLog.log')
@@ -37,10 +39,9 @@ buildInterval = 3600
 
 #Parallel script runner (not running in parallel causes discord to disconnect the bot)
 class ParallelThread(threading.Thread):
-    def __init__(self):
-        self.stdout = None
-        self.stderr = None
+    def __init__(self, *args):
         threading.Thread.__init__(self)
+        self.args = args
     
     def RunGetLatestScript(self):
         global isOperationInProgress
@@ -75,12 +76,33 @@ class ParallelThread(threading.Thread):
         isOperationInProgress = False
         messageQueue.put(outString)
     
+    def RunPackageInstall(self):
+        global isOperationInProgress
+        isOperationInProgress = True
+        p = subprocess.Popen([installPackageScript, self.args[0]], shell=False, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        self.stdout, self.stderr = p.communicate() 
+        outString = ""
+        with open(packageLogFile) as file:
+            first_line = file.readline()
+            errorSearchValue = re.search('ERROR', first_line)
+            invalidSearchValue = re.search('Invalid DevKit:', first_line)
+            if ( errorSearchValue != None or invalidSearchValue != None ):
+                outString = first_line
+            else:
+                outString = "Package installed successfully!"
+        isOperationInProgress = False
+        messageQueue.put(outString)
+    
     def run(self):
+        print('Args are: {}'.format(self.args))
+    
         global batchScriptRunValue
         if ( batchScriptRunValue == 1 ):
             self.RunGetLatestScript()
         if ( batchScriptRunValue == 2 ):
             self.RunBuildScript()
+        if ( batchScriptRunValue == 3 ):
+            self.RunPackageInstall()
         
         print('Script Finished!')
         batchScriptRunValue = 0
@@ -167,7 +189,7 @@ def WriteWarningsErrorsToFiles():
         text_file.write(warningStr)
     with open(eLogFilename, "w") as text_file:
         text_file.write(errorStr)
-    
+        
     
 #Function takes a string and sends it out in chunks that fall below the 2k character limit
 # Can be improved further with formatting work (aka don't cut a message halfway in chunk separation)
@@ -206,6 +228,8 @@ async def Scheduled_Build():
                     msg = "Error: Currently getting latest from perforce, please try again later."
                 if ( batchScriptRunValue == 2 ):
                     msg = 'Error: A build is in progress, please retry later.'
+                if ( batchScriptRunValue == 3 ):
+                    msg = 'Error: A package is currently being installed on a DevKit(s).'
         #Sleep for scheduled interval time and repeat loop after period elapses.
         await asyncio.sleep(buildInterval)
 
@@ -213,13 +237,17 @@ async def Scheduled_Build():
 #Function for manually building rather than scheduling
 # does a check if a build is currently running before attempting
 # functionally equivalent to Scheduled_Build() pings the caller instead of everyone.
-async def Command_Script(message, scriptValue):
+async def Command_Script(message, scriptValue, args=[]):
     global batchScriptRunValue
     channel = discord.Object(id=channelID)
     if not client.is_closed:
         if not isOperationInProgress:
             batchScriptRunValue = scriptValue
-            buildScriptThread = ParallelThread()
+            buildScriptThread = None
+            if (scriptValue == 3):
+                buildScriptThread = ParallelThread(args)
+            else:
+                buildScriptThread = ParallelThread()
             buildScriptThread.start()
             while( buildScriptThread.is_alive() ):
                 print('sleeping for 10s')
@@ -231,11 +259,15 @@ async def Command_Script(message, scriptValue):
                 msg = "Error: Currently getting latest from perforce, please try again later."
             if ( batchScriptRunValue == 2 ):
                 msg = 'Error: A build is in progress, please retry later.'
+            if ( batchScriptRunValue == 3 ):
+                msg = 'Error: A package is currently being installed on a DevKit(s).'
     else:
         msg = "Error: Command could not be executed."
     return msg
 
 
+
+    
 @client.event
 async def on_message(message):
     # we do not want the bot to reply to itself
@@ -270,16 +302,26 @@ async def on_message(message):
         else:
             await client.send_message(message.channel, "Error: Build in progress. ")
     
+    # Deploy the package file
+    elif message.content.startswith('!sendpackage'):
+        msg = 'Understood {0.author.mention}, attempting to send package...'.format(message)
+        await client.send_message(message.channel, msg)
+        await client.wait_until_ready()
+        parameter = message.content.split()[1]
+        msg = await Command_Script( message, 3, parameter )
+        await client.send_message(message.channel, msg)
+    
     # knock knock who's there    
     elif message.content.startswith('!bot'):
         await client.send_message(message.channel, 'You Rang {0.author.mention}?'.format(message))
     
     # list command options
     elif message.content.startswith('!help'):
-        helpmsg = """COMMAND LIST:
-                    \n\t!getlatest      - force get latest from perforce for WhiteBoxProject
-                    \n\t!getlogs        - get the log files from the build machine
-                    \n\t!buildrequest   - request a PS4 build (packaging)"""
+        helpmsg = """```COMMAND LIST:
+                    \n\t!getlatest              - force get latest from perforce for WhiteBoxProject
+                    \n\t!getlogs                - get the log files from the build machine
+                    \n\t!buildrequest           - request a PS4 build (packaging)
+                    \n\t!sendpackage <arg>      - install the game package on the specified IP e.g. '!sendpackage 10.122.6.68' OR for all devkits '!sendpackage *'```"""
         await client.send_message(message.channel, helpmsg)
 
 
@@ -290,6 +332,6 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
-#Schedule the task on a event loop and provide the bot API token.
-client.loop.create_task(Scheduled_Build())
+#Schedule the task on a event loop and provide the bot API token. - Scheduling disabled as not needed.
+#client.loop.create_task(Scheduled_Build())
 client.run('NDMwNzM3MTIyNzQ4NjYxNzYx.DaUn5w.iX7Wk13LUOM3VcOD3KjzQv-VmqY')
